@@ -13,12 +13,12 @@ namespace TrilhaApiDesafio.Migrations
                 name: "Tarefas",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Titulo = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Descricao = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Data = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Titulo = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Descricao = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    Data = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

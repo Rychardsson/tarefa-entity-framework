@@ -190,6 +190,137 @@ namespace TrilhaApiDesafio.Services
             }
         }
 
+        public async Task<IEnumerable<TarefaResponseDto>> GetByPrioridadeAsync(int prioridade)
+        {
+            try
+            {
+                _logger.LogInformation("Buscando tarefas com prioridade: {Prioridade}", prioridade);
+                var tarefas = await _repository.GetByPrioridadeAsync(prioridade);
+                var result = _mapper.Map<IEnumerable<TarefaResponseDto>>(tarefas);
+                _logger.LogInformation("Busca por prioridade concluída. {Count} tarefas encontradas", result.Count());
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar tarefas por prioridade: {Prioridade}", prioridade);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<TarefaResponseDto>> GetTarefasAtrasadasAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Buscando tarefas atrasadas");
+                var tarefas = await _repository.GetTarefasAtrasadasAsync();
+                var result = _mapper.Map<IEnumerable<TarefaResponseDto>>(tarefas);
+                _logger.LogInformation("Busca por tarefas atrasadas concluída. {Count} tarefas encontradas", result.Count());
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar tarefas atrasadas");
+                throw;
+            }
+        }
+
+        public async Task<TarefaEstatisticasDto> GetEstatisticasAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Calculando estatísticas das tarefas");
+                
+                var totalTarefas = await _repository.CountAsync();
+                var tarefasPendentes = await _repository.CountByStatusAsync(EnumStatusTarefa.Pendente);
+                var tarefasFinalizadas = await _repository.CountByStatusAsync(EnumStatusTarefa.Finalizado);
+                var tarefasAtrasadas = await _repository.GetTarefasAtrasadasAsync();
+                var tarefasHoje = await _repository.GetByDataAsync(DateTime.UtcNow);
+
+                var estatisticas = new TarefaEstatisticasDto
+                {
+                    TotalTarefas = totalTarefas,
+                    TarefasPendentes = tarefasPendentes,
+                    TarefasFinalizadas = tarefasFinalizadas,
+                    TarefasAtrasadas = tarefasAtrasadas.Count(),
+                    TarefasHoje = tarefasHoje.Count(),
+                    PercentualConclusao = totalTarefas > 0 ? (decimal)tarefasFinalizadas / totalTarefas * 100 : 0
+                };
+
+                // Calcular distribuição por prioridade
+                for (int i = 1; i <= 4; i++)
+                {
+                    var count = (await _repository.GetByPrioridadeAsync(i)).Count();
+                    estatisticas.DistribuicaoPorPrioridade[i] = count;
+                }
+
+                _logger.LogInformation("Estatísticas calculadas com sucesso");
+                return estatisticas;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao calcular estatísticas das tarefas");
+                throw;
+            }
+        }
+
+        public async Task<TarefaResponseDto?> FinalizarTarefaAsync(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Finalizando tarefa. ID: {Id}", id);
+                
+                var tarefa = await _repository.GetByIdAsync(id);
+                if (tarefa == null)
+                {
+                    _logger.LogWarning("Tentativa de finalizar tarefa inexistente. ID: {Id}", id);
+                    return null;
+                }
+
+                tarefa.Status = EnumStatusTarefa.Finalizado;
+                tarefa.MarcarComoAtualizada();
+                
+                var tarefaAtualizada = await _repository.UpdateAsync(tarefa);
+                var result = _mapper.Map<TarefaResponseDto>(tarefaAtualizada);
+                
+                _logger.LogInformation("Tarefa finalizada com sucesso. ID: {Id}", id);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao finalizar tarefa. ID: {Id}", id);
+                throw;
+            }
+        }
+
+        public Task<bool> ValidarTarefaAsync(TarefaRequestDto tarefaDto)
+        {
+            try
+            {
+                if (tarefaDto == null)
+                    return Task.FromResult(false);
+
+                // Validações de negócio
+                if (string.IsNullOrWhiteSpace(tarefaDto.Titulo))
+                    return Task.FromResult(false);
+
+                if (tarefaDto.Data.Date < DateTime.UtcNow.Date)
+                {
+                    _logger.LogWarning("Tentativa de criar tarefa com data no passado: {Data}", tarefaDto.Data);
+                    return Task.FromResult(false);
+                }
+
+                if (tarefaDto.Prioridade < 1 || tarefaDto.Prioridade > 4)
+                    return Task.FromResult(false);
+
+                return Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao validar tarefa");
+                return Task.FromResult(false);
+            }
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             try

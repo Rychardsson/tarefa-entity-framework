@@ -42,12 +42,22 @@ namespace TrilhaApiDesafio.Context
                 
                 entity.Property(e => e.IsDeleted)
                     .HasDefaultValue(false);
+                
+                entity.Property(e => e.Prioridade)
+                    .HasDefaultValue(1);
+                
+                entity.Property(e => e.Tags)
+                    .HasMaxLength(500);
 
                 // Índices para melhorar performance das consultas
                 entity.HasIndex(e => e.Data);
                 entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Prioridade);
                 entity.HasIndex(e => e.IsDeleted);
+                entity.HasIndex(e => e.UserId);
                 entity.HasIndex(e => new { e.IsDeleted, e.DataCriacao });
+                entity.HasIndex(e => new { e.Status, e.Prioridade });
+                entity.HasIndex(e => new { e.Data, e.Status });
             });
 
             // Configuração da entidade User

@@ -142,6 +142,9 @@ try
     // Response Caching
     builder.Services.AddResponseCaching();
 
+    // Memory Cache para melhor performance
+    builder.Services.AddMemoryCache();
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.

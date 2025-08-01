@@ -8,6 +8,10 @@ using TrilhaApiDesafio.Mappings;
 using TrilhaApiDesafio.Repositories;
 using TrilhaApiDesafio.Services;
 using TrilhaApiDesafio.Validators;
+using TrilhaApiDesafio.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Reflection;
 
 // Configurar Serilog
@@ -37,6 +41,8 @@ try
     // Repository Pattern e Services
     builder.Services.AddScoped<ITarefaRepository, TarefaRepository>();
     builder.Services.AddScoped<ITarefaService, TarefaService>();
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IJwtService, JwtService>();
 
     // Controllers com configurações JSON
     builder.Services.AddControllers().AddJsonOptions(options =>
@@ -54,6 +60,29 @@ try
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
+    });
+
+    // Configure JWT Authentication
+    var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+    var secretKey = jwtSettings["SecretKey"];
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
     });
 
     // Health Checks

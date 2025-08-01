@@ -18,8 +18,8 @@ namespace TrilhaApiDesafio.Controllers
 
         public AuthController(IUserService userService, ILogger<AuthController> logger)
         {
-            _userService = userService;
-            _logger = logger;
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>

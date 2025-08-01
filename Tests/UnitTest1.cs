@@ -1,4 +1,4 @@
-namespace TrilhaApiDesafio.Tests;
+namespace Tests;
 
 public class UnitTest1
 {

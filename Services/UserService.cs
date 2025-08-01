@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 using TrilhaApiDesafio.Authentication;
+using TrilhaApiDesafio.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace TrilhaApiDesafio.Services
 {

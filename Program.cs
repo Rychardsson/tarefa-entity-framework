@@ -57,15 +57,7 @@ try
     });
 
     // Health Checks
-    builder.Services.AddHealthChecks()
-        .AddDbContextCheck<OrganizadorContext>();
-
-    // API Versioning
-    builder.Services.AddApiVersioning(opt =>
-    {
-        opt.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
-        opt.AssumeDefaultVersionWhenUnspecified = true;
-    });
+    builder.Services.AddHealthChecks();
 
     // Swagger/OpenAPI
     builder.Services.AddEndpointsApiExplorer();

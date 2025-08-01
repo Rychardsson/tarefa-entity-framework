@@ -4,8 +4,6 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrilhaApiDesafio", "TrilhaApiDesafio.csproj", "{0FA4A2BD-0B92-5E85-E87C-176D79B2DDC0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrilhaApiDesafio.Tests", "TrilhaApiDesafio.Tests\TrilhaApiDesafio.Tests.csproj", "{060E8A09-4E9D-4E31-8505-D569F6EA5D78}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,10 +14,6 @@ Global
 		{0FA4A2BD-0B92-5E85-E87C-176D79B2DDC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FA4A2BD-0B92-5E85-E87C-176D79B2DDC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FA4A2BD-0B92-5E85-E87C-176D79B2DDC0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{060E8A09-4E9D-4E31-8505-D569F6EA5D78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{060E8A09-4E9D-4E31-8505-D569F6EA5D78}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{060E8A09-4E9D-4E31-8505-D569F6EA5D78}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{060E8A09-4E9D-4E31-8505-D569F6EA5D78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

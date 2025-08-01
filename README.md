@@ -1,6 +1,41 @@
-# Sistema Gerenciador de Tarefas
+# Sistema Gerenciador de Tarefas - Versão Melhorada
 
-Este é um sistema gerenciador de tarefas desenvolvido como uma Web API usando .NET 6, Entity Framework Core e SQLite.
+Este é um sistema gerenciador de tarefas desenvolvido como uma Web API usando **.NET 8**, Entity Framework Core e SQLite, implementando as melhores práticas de desenvolvimento.
+
+## 🚀 Melhorias Implementadas
+
+### ✅ **Atualização Tecnológica**
+
+- **Migrado para .NET 8** (última versão LTS)
+- **Nullable Reference Types** habilitado para maior segurança
+- **Pacotes atualizados** para versões mais recentes
+
+### ✅ **Arquitetura Melhorada**
+
+- **Repository Pattern** - Separação da lógica de acesso aos dados
+- **Service Layer** - Lógica de negócio centralizada
+- **DTOs** - Data Transfer Objects para entrada/saída da API
+- **AutoMapper** - Mapeamento automático entre entidades e DTOs
+
+### ✅ **Validações Robustas**
+
+- **FluentValidation** - Validações mais expressivas e flexíveis
+- **Validações customizadas** - Regras de negócio específicas
+- **Tratamento de erros** melhorado
+
+### ✅ **Qualidade e Monitoramento**
+
+- **Serilog** - Sistema de logging estruturado
+- **Health Checks** - Endpoint para verificar saúde da aplicação
+- **CORS** configurado para integração frontend
+- **Response Caching** para melhor performance
+
+### ✅ **Recursos Avançados**
+
+- **Soft Delete** - Exclusão lógica dos registros
+- **Auditoria** - Campos de data criação e atualização
+- **Documentação Swagger** melhorada
+- **Índices no banco** para otimização de consultas
 
 ## Funcionalidades
 
@@ -8,27 +43,39 @@ O sistema oferece um CRUD completo para gerenciamento de tarefas com as seguinte
 
 ### Endpoints da API
 
-- **GET /Tarefa/{id}** - Obtém uma tarefa específica por ID
-- **GET /Tarefa/ObterTodos** - Obtém todas as tarefas
-- **GET /Tarefa/ObterPorTitulo?titulo={titulo}** - Obtém tarefas que contenham o título especificado
-- **GET /Tarefa/ObterPorData?data={data}** - Obtém tarefas por data
-- **GET /Tarefa/ObterPorStatus?status={status}** - Obtém tarefas por status (Pendente ou Finalizado)
-- **POST /Tarefa** - Cria uma nova tarefa
-- **PUT /Tarefa/{id}** - Atualiza uma tarefa existente
-- **DELETE /Tarefa/{id}** - Remove uma tarefa
+- **GET /api/Tarefa/{id}** - Obtém uma tarefa específica por ID
+- **GET /api/Tarefa** - Obtém todas as tarefas (não deletadas)
+- **GET /api/Tarefa/titulo/{titulo}** - Obtém tarefas que contenham o título especificado
+- **GET /api/Tarefa/data/{data}** - Obtém tarefas por data
+- **GET /api/Tarefa/status/{status}** - Obtém tarefas por status (0=Pendente, 1=Finalizado)
+- **POST /api/Tarefa** - Cria uma nova tarefa
+- **PUT /api/Tarefa/{id}** - Atualiza uma tarefa existente
+- **DELETE /api/Tarefa/{id}** - Remove uma tarefa (soft delete)
 
 ### Modelo de Dados
 
-A classe `Tarefa` possui as seguintes propriedades:
+#### Request DTO (TarefaRequestDto)
 
 ```csharp
-public class Tarefa
 {
-    public int Id { get; set; }
-    public string Titulo { get; set; }          // Obrigatório, máximo 200 caracteres
-    public string Descricao { get; set; }       // Opcional, máximo 1000 caracteres
-    public DateTime Data { get; set; }          // Obrigatório
-    public EnumStatusTarefa Status { get; set; } // Obrigatório (Pendente ou Finalizado)
+    "titulo": "string",      // Obrigatório, máximo 200 caracteres
+    "descricao": "string",   // Opcional, máximo 1000 caracteres
+    "data": "2025-07-31T10:00:00",  // Obrigatório
+    "status": 0              // Obrigatório (0=Pendente, 1=Finalizado)
+}
+```
+
+#### Response DTO (TarefaResponseDto)
+
+```csharp
+{
+    "id": 1,
+    "titulo": "string",
+    "descricao": "string",
+    "data": "2025-07-31T10:00:00",
+    "status": 0,
+    "statusDescricao": "Pendente",
+    "dataCriacao": "2025-07-31T09:00:00"
 }
 ```
 
@@ -37,16 +84,19 @@ public class Tarefa
 ```csharp
 public enum EnumStatusTarefa
 {
-    Pendente,
-    Finalizado
+    Pendente = 0,
+    Finalizado = 1
 }
 ```
 
 ## Tecnologias Utilizadas
 
-- **.NET 6** - Framework para desenvolvimento da Web API
-- **Entity Framework Core 6** - ORM para acesso ao banco de dados
+- **.NET 8** - Framework para desenvolvimento da Web API
+- **Entity Framework Core 8** - ORM para acesso ao banco de dados
 - **SQLite** - Banco de dados leve para desenvolvimento
+- **AutoMapper** - Mapeamento entre objetos
+- **FluentValidation** - Validações robustas
+- **Serilog** - Sistema de logging estruturado
 - **Swagger/OpenAPI** - Documentação automática da API
 - **ASP.NET Core** - Framework web
 
@@ -54,7 +104,7 @@ public enum EnumStatusTarefa
 
 1. **Pré-requisitos:**
 
-   - .NET 6 SDK instalado
+   - .NET 8 SDK instalado
    - Visual Studio Code ou Visual Studio
 
 2. **Configuração:**
@@ -73,7 +123,7 @@ public enum EnumStatusTarefa
 3. **Banco de Dados:**
 
    ```bash
-   # Aplicar as migrations (já configurado)
+   # As migrations já estão aplicadas, mas se necessário:
    dotnet ef database update
    ```
 
@@ -85,30 +135,49 @@ public enum EnumStatusTarefa
 
 5. **Acessar a documentação:**
    - Swagger UI: `https://localhost:7295/swagger`
-   - API Base URL: `https://localhost:7295`
+   - API Base URL: `https://localhost:7295/api`
+   - Health Check: `https://localhost:7295/health`
 
 ## Exemplo de Uso
 
 ### Criar uma nova tarefa:
 
 ```json
-POST /Tarefa
+POST /api/Tarefa
+Content-Type: application/json
+
 {
-  "titulo": "Estudar .NET",
-  "descricao": "Revisar conceitos de Entity Framework",
-  "data": "2025-07-24T10:00:00",
+  "titulo": "Estudar .NET 8",
+  "descricao": "Revisar novos recursos do .NET 8",
+  "data": "2025-07-31T14:00:00",
   "status": 0
+}
+```
+
+### Resposta:
+
+```json
+{
+  "id": 1,
+  "titulo": "Estudar .NET 8",
+  "descricao": "Revisar novos recursos do .NET 8",
+  "data": "2025-07-31T14:00:00",
+  "status": 0,
+  "statusDescricao": "Pendente",
+  "dataCriacao": "2025-07-31T21:53:20"
 }
 ```
 
 ### Atualizar uma tarefa:
 
 ```json
-PUT /Tarefa/1
+PUT /api/Tarefa/1
+Content-Type: application/json
+
 {
-  "titulo": "Estudar .NET - Concluído",
-  "descricao": "Revisar conceitos de Entity Framework - Finalizado",
-  "data": "2025-07-24T10:00:00",
+  "titulo": "Estudar .NET 8 - Concluído",
+  "descricao": "Revisar novos recursos do .NET 8 - Finalizado",
+  "data": "2025-07-31T14:00:00",
   "status": 1
 }
 ```
@@ -118,23 +187,94 @@ PUT /Tarefa/1
 ```
 ├── Controllers/
 │   └── TarefaController.cs      # Controller com endpoints da API
+├── DTOs/
+│   ├── TarefaRequestDto.cs      # DTO para entrada de dados
+│   └── TarefaResponseDto.cs     # DTO para saída de dados
 ├── Models/
-│   ├── Tarefa.cs               # Modelo da entidade Tarefa
+│   ├── Tarefa.cs               # Entidade do domínio
 │   └── EnumStatusTarefa.cs     # Enum para status das tarefas
 ├── Context/
 │   └── OrganizadorContext.cs   # Contexto do Entity Framework
+├── Repositories/
+│   ├── ITarefaRepository.cs    # Interface do repositório
+│   └── TarefaRepository.cs     # Implementação do repositório
+├── Services/
+│   ├── ITarefaService.cs       # Interface do serviço
+│   └── TarefaService.cs        # Implementação do serviço
+├── Mappings/
+│   └── TarefaProfile.cs        # Perfil do AutoMapper
+├── Validators/
+│   └── TarefaRequestValidator.cs # Validações com FluentValidation
 ├── Migrations/                 # Migrations do banco de dados
+├── logs/                       # Arquivos de log da aplicação
 ├── Program.cs                  # Configuração da aplicação
 └── appsettings.json           # Configurações (connection string, etc.)
 ```
 
 ## Validações Implementadas
 
-- Título é obrigatório e deve ter no máximo 200 caracteres
-- Descrição é opcional e deve ter no máximo 1000 caracteres
-- Data é obrigatória e não pode ser vazia
-- Status é obrigatório e deve ser Pendente (0) ou Finalizado (1)
+### Título
+
+- Obrigatório
+- Máximo 200 caracteres
+
+### Descrição
+
+- Opcional
+- Máximo 1000 caracteres quando informada
+
+### Data
+
+- Obrigatória
+- Deve ser uma data válida
+- Não pode ser mais de 1 ano no passado
+- Não pode ser mais de 5 anos no futuro
+
+### Status
+
+- Obrigatório
+- Deve ser 0 (Pendente) ou 1 (Finalizado)
+
+## Recursos de Qualidade
+
+### Logging
+
+- Logs estruturados com Serilog
+- Logs salvos em arquivos rotativos (pasta `logs/`)
+- Logs no console para desenvolvimento
+
+### Health Checks
+
+- Endpoint `/health` para verificar status da aplicação
+- Verificação automática do contexto do banco
+
+### CORS
+
+- Configurado para permitir chamadas de qualquer origem
+- Ideal para integração com frontend
+
+### Caching
+
+- Response caching habilitado para melhor performance
 
 ## Banco de Dados
 
-O sistema utiliza SQLite como banco de dados, criando automaticamente um arquivo `tarefas.db` na raiz do projeto. Para ambientes de produção, a string de conexão pode ser facilmente alterada para SQL Server ou outro provedor compatível com Entity Framework Core.
+O sistema utiliza SQLite como banco de dados, criando automaticamente um arquivo `tarefas.db` na raiz do projeto.
+
+### Características:
+
+- **Soft Delete**: Registros não são removidos fisicamente
+- **Auditoria**: Campos de data de criação e atualização
+- **Índices**: Otimizações para consultas frequentes
+- **Migrations**: Versionamento automático do schema
+
+Para ambientes de produção, a string de conexão pode ser facilmente alterada para SQL Server ou outro provedor compatível com Entity Framework Core.
+
+## Próximos Passos (Futuras Melhorias)
+
+- [ ] **Autenticação JWT** - Sistema de login e autorização
+- [ ] **Testes Unitários** - Cobertura de testes com xUnit
+- [ ] **Paginação** - Para endpoints que retornam listas
+- [ ] **Rate Limiting** - Controle de taxa de requisições
+- [ ] **Docker** - Containerização da aplicação
+- [ ] **CI/CD** - Pipeline de integração contínua

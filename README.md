@@ -671,7 +671,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 - **Documentação**: [Swagger UI](https://localhost:7295/swagger)
 - **Issues**: [GitHub Issues](https://github.com/Rychardsson/tarefa-entity-framework/issues)
-- **Email**: rychardsson@email.com
+- **Email**: rychardssong2@gmail.com
 
 ## 🏆 Recursos Destacados
 

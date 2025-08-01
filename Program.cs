@@ -64,7 +64,7 @@ try
 
     // Configure JWT Authentication
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-    var secretKey = jwtSettings["SecretKey"];
+    var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
 
     builder.Services.AddAuthentication(options =>
     {
@@ -96,11 +96,37 @@ try
         {
             Title = "Sistema Gerenciador de Tarefas API",
             Version = "v1",
-            Description = "API para gerenciamento de tarefas com CRUD completo",
+            Description = "API para gerenciamento de tarefas com CRUD completo e autenticação JWT",
             Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "Desenvolvedor",
                 Email = "dev@example.com"
+            }
+        });
+
+        // Configuração para JWT no Swagger
+        c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Bearer {token}\""
+        });
+        
+        c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
             }
         });
 

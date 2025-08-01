@@ -163,6 +163,7 @@ try
 
     app.UseResponseCaching();
 
+    app.UseAuthentication();
     app.UseAuthorization();
 
     // Health Check endpoint

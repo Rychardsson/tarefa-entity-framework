@@ -1,112 +1,150 @@
 using Microsoft.AspNetCore.Mvc;
-using TrilhaApiDesafio.Context;
+using TrilhaApiDesafio.DTOs;
 using TrilhaApiDesafio.Models;
+using TrilhaApiDesafio.Services;
 
 namespace TrilhaApiDesafio.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class TarefaController : ControllerBase
     {
-        private readonly OrganizadorContext _context;
+        private readonly ITarefaService _tarefaService;
+        private readonly ILogger<TarefaController> _logger;
 
-        public TarefaController(OrganizadorContext context)
+        public TarefaController(ITarefaService tarefaService, ILogger<TarefaController> logger)
         {
-            _context = context;
+            _tarefaService = tarefaService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Obtém uma tarefa específica por ID
+        /// </summary>
+        /// <param name="id">ID da tarefa</param>
+        /// <returns>Tarefa encontrada</returns>
         [HttpGet("{id}")]
-        public IActionResult ObterPorId(int id)
+        [ProducesResponseType(typeof(TarefaResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ObterPorId(int id)
         {
-            var tarefa = _context.Tarefas.Find(id);
+            var tarefa = await _tarefaService.GetByIdAsync(id);
             
             if (tarefa == null)
-                return NotFound();
+                return NotFound($"Tarefa com ID {id} não encontrada");
                 
             return Ok(tarefa);
         }
 
-        [HttpGet("ObterTodos")]
-        public IActionResult ObterTodos()
+        /// <summary>
+        /// Obtém todas as tarefas
+        /// </summary>
+        /// <returns>Lista de todas as tarefas</returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<TarefaResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterTodos()
         {
-            var tarefas = _context.Tarefas.ToList();
+            var tarefas = await _tarefaService.GetAllAsync();
             return Ok(tarefas);
         }
 
-        [HttpGet("ObterPorTitulo")]
-        public IActionResult ObterPorTitulo(string titulo)
+        /// <summary>
+        /// Obtém tarefas que contenham o título especificado
+        /// </summary>
+        /// <param name="titulo">Título a ser pesquisado</param>
+        /// <returns>Lista de tarefas que contenham o título</returns>
+        [HttpGet("titulo/{titulo}")]
+        [ProducesResponseType(typeof(IEnumerable<TarefaResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ObterPorTitulo(string titulo)
         {
-            if (string.IsNullOrEmpty(titulo))
-                return BadRequest(new { Erro = "O título não pode ser vazio" });
+            if (string.IsNullOrWhiteSpace(titulo))
+                return BadRequest("O título não pode ser vazio");
                 
-            var tarefas = _context.Tarefas.Where(x => x.Titulo.Contains(titulo));
+            var tarefas = await _tarefaService.GetByTituloAsync(titulo);
             return Ok(tarefas);
         }
 
-        [HttpGet("ObterPorData")]
-        public IActionResult ObterPorData(DateTime data)
+        /// <summary>
+        /// Obtém tarefas por data
+        /// </summary>
+        /// <param name="data">Data das tarefas</param>
+        /// <returns>Lista de tarefas da data especificada</returns>
+        [HttpGet("data/{data}")]
+        [ProducesResponseType(typeof(IEnumerable<TarefaResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterPorData(DateTime data)
         {
-            var tarefa = _context.Tarefas.Where(x => x.Data.Date == data.Date);
-            return Ok(tarefa);
-        }
-
-        [HttpGet("ObterPorStatus")]
-        public IActionResult ObterPorStatus(EnumStatusTarefa status)
-        {
-            var tarefas = _context.Tarefas.Where(x => x.Status == status);
+            var tarefas = await _tarefaService.GetByDataAsync(data);
             return Ok(tarefas);
         }
 
+        /// <summary>
+        /// Obtém tarefas por status
+        /// </summary>
+        /// <param name="status">Status das tarefas (0 = Pendente, 1 = Finalizado)</param>
+        /// <returns>Lista de tarefas com o status especificado</returns>
+        [HttpGet("status/{status}")]
+        [ProducesResponseType(typeof(IEnumerable<TarefaResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ObterPorStatus(EnumStatusTarefa status)
+        {
+            var tarefas = await _tarefaService.GetByStatusAsync(status);
+            return Ok(tarefas);
+        }
+
+        /// <summary>
+        /// Cria uma nova tarefa
+        /// </summary>
+        /// <param name="tarefaDto">Dados da tarefa a ser criada</param>
+        /// <returns>Tarefa criada</returns>
         [HttpPost]
-        public IActionResult Criar(Tarefa tarefa)
+        [ProducesResponseType(typeof(TarefaResponseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Criar([FromBody] TarefaRequestDto tarefaDto)
         {
-            if (tarefa.Data == DateTime.MinValue)
-                return BadRequest(new { Erro = "A data da tarefa não pode ser vazia" });
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            _context.Tarefas.Add(tarefa);
-            _context.SaveChanges();
-            
-            return CreatedAtAction(nameof(ObterPorId), new { id = tarefa.Id }, tarefa);
+            var tarefaCriada = await _tarefaService.CreateAsync(tarefaDto);
+            return CreatedAtAction(nameof(ObterPorId), new { id = tarefaCriada.Id }, tarefaCriada);
         }
 
+        /// <summary>
+        /// Atualiza uma tarefa existente
+        /// </summary>
+        /// <param name="id">ID da tarefa a ser atualizada</param>
+        /// <param name="tarefaDto">Novos dados da tarefa</param>
+        /// <returns>Tarefa atualizada</returns>
         [HttpPut("{id}")]
-        public IActionResult Atualizar(int id, Tarefa tarefa)
+        [ProducesResponseType(typeof(TarefaResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Atualizar(int id, [FromBody] TarefaRequestDto tarefaDto)
         {
-            var tarefaBanco = _context.Tarefas.Find(id);
-
-            if (tarefaBanco == null)
-                return NotFound();
-
-            if (tarefa.Data == DateTime.MinValue)
-                return BadRequest(new { Erro = "A data da tarefa não pode ser vazia" });
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            tarefaBanco.Titulo = tarefa.Titulo;
-            tarefaBanco.Descricao = tarefa.Descricao;
-            tarefaBanco.Data = tarefa.Data;
-            tarefaBanco.Status = tarefa.Status;
+            var tarefaAtualizada = await _tarefaService.UpdateAsync(id, tarefaDto);
             
-            _context.Tarefas.Update(tarefaBanco);
-            _context.SaveChanges();
+            if (tarefaAtualizada == null)
+                return NotFound($"Tarefa com ID {id} não encontrada");
             
-            return Ok(tarefaBanco);
+            return Ok(tarefaAtualizada);
         }
 
+        /// <summary>
+        /// Remove uma tarefa
+        /// </summary>
+        /// <param name="id">ID da tarefa a ser removida</param>
+        /// <returns>Confirmação da remoção</returns>
         [HttpDelete("{id}")]
-        public IActionResult Deletar(int id)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Deletar(int id)
         {
-            var tarefaBanco = _context.Tarefas.Find(id);
-
-            if (tarefaBanco == null)
-                return NotFound();
-
-            _context.Tarefas.Remove(tarefaBanco);
-            _context.SaveChanges();
+            var deleted = await _tarefaService.DeleteAsync(id);
+            
+            if (!deleted)
+                return NotFound($"Tarefa com ID {id} não encontrada");
             
             return NoContent();
         }
